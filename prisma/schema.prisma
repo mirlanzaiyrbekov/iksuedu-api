@@ -14,30 +14,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role{
-  TEACHER
-  STUDENT
-}
 // USER MODEL
-model User {
-  id          String   @id @default(cuid())
-  firstName   String   @unique  @map("first_name")
-  lastName    String   @unique  @map("last_name")
-  thirdName   String   @unique @map("third_name")
-  password    String
-  email       String
-  phone       String
-  role        Role
+model Teacher {
+  id          String    @id @default(cuid())
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  email       String    @unique
+  password    String  
   tests       Test[]   @relation("TeacherTests")
+
+  @@map("teacher")
+}
+model Defendant {
+  id          String    @id @default(cuid())
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  thirdName   String    @map("third_name")
+  school      String    
+  tests       Test[]    @relation("TestDefendant")
+
+  @@map("defendant")
 }
 // TEST MODEL
 model Test {
-  id        String     @id @default(cuid())
-  title     String
-  expires   DateTime
-  teacher   User       @relation("TeacherTests", fields: [teacherId], references: [id])
-  teacherId String
-  questions Question[]
+  id          String     @id @default(cuid())
+  title       String
+  expires     DateTime
+  defendantId String
+  defendant   Defendant  @relation("TestDefendant",fields: [defendantId],references: [id])
+  teacher     Teacher    @relation("TeacherTests", fields: [teacherId], references: [id])
+  teacherId   String
+  questions   Question[]
 }
 // QUESTION MODEL
 model Question {
