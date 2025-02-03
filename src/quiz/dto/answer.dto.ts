@@ -1,11 +1,24 @@
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 
-export class AnswerDTO {
-  @IsBoolean()
-  @IsNotEmpty()
-  isCorrect: boolean;
+export class AnswerCreateDTO {
+	@IsBoolean()
+	@IsNotEmpty()
+	isCorrect: boolean
 
-  @IsString()
-  @IsNotEmpty()
-  content: string;
+	@IsString()
+	@IsNotEmpty()
+	content: string
+}
+
+export class AnswerUpdateDTO {
+	@IsString()
+	id: string
+
+	@IsBoolean()
+	@IsOptional()
+	isCorrect?: boolean
+
+	@IsString()
+	@IsOptional()
+	content?: string
 }

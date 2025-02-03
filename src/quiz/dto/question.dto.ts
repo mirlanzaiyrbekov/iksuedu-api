@@ -1,10 +1,22 @@
-import { IsNotEmpty, IsString } from 'class-validator';
-import { AnswerDTO } from './answer.dto';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { AnswerCreateDTO, AnswerUpdateDTO } from './answer.dto'
 
-export class QuestionDTO {
-  @IsString()
-  @IsNotEmpty()
-  content: string;
+export class QuestionCreateDTO {
+	@IsString()
+	@IsNotEmpty()
+	content: string
 
-  answer: AnswerDTO[];
+	answers: AnswerCreateDTO[]
+}
+
+export class QuestionUpdateDTO {
+	@IsString()
+	id: string
+
+	@IsString()
+	@IsOptional()
+	content?: string
+
+	@IsOptional()
+	answers?: AnswerUpdateDTO[]
 }

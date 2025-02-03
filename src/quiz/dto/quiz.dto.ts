@@ -1,14 +1,37 @@
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
-import { QuestionDTO } from './question.dto';
+import { Type } from 'class-transformer'
+import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { QuestionCreateDTO, QuestionUpdateDTO } from './question.dto'
 
-export class QuizDTO {
-  @IsString()
-  @IsNotEmpty()
-  title: string;
+export class QuizCreateDTO {
+	@IsString()
+	@IsNotEmpty()
+	title: string
 
-  @IsNotEmpty()
-  @IsDate()
-  expires: Date;
+	@IsString()
+	@IsNotEmpty()
+	teacherId: string
 
-  questions: QuestionDTO[];
+	@IsNotEmpty()
+	@IsDate()
+	@Type(() => Date)
+	expires: Date
+
+	questions: QuestionCreateDTO[]
+}
+
+export class QuizUpdateDTO {
+	@IsString()
+	id: string
+
+	@IsString()
+	@IsOptional()
+	title?: string
+
+	@IsDate()
+	@Type(() => Date)
+	@IsOptional()
+	expires: Date
+
+	@IsOptional()
+	questions?: QuestionUpdateDTO[]
 }

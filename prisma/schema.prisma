@@ -21,38 +21,51 @@ model Teacher {
   lastName    String    @map("last_name")
   email       String    @unique
   password    String  
-  tests       Test[]   @relation("TeacherTests")
-
+  tests       Quiz[]    @relation("TeacherTests")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   @@map("teacher")
 }
+// DEFENDANT
 model Defendant {
   id          String    @id @default(cuid())
   firstName   String    @map("first_name")
   lastName    String    @map("last_name")
   thirdName   String    @map("third_name")
   school      String    
-  tests       Test[]    @relation("TestDefendant")
-
+  tests       Quiz[]    @relation("TestDefendant")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   @@map("defendant")
 }
 // TEST MODEL
-model Test {
+model Quiz {
   id          String     @id @default(cuid())
-  title       String
+  title       String     
   expires     DateTime
-  defendantId String
-  defendant   Defendant  @relation("TestDefendant",fields: [defendantId],references: [id])
-  teacher     Teacher    @relation("TeacherTests", fields: [teacherId], references: [id])
+  defendantId String?
+  defendant   Defendant?  @relation("TestDefendant",fields: [defendantId],references: [id])
   teacherId   String
+  teacher     Teacher    @relation("TeacherTests", fields: [teacherId], references: [id])
   questions   Question[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("quiz")
 }
 // QUESTION MODEL
 model Question {
   id          String   @id @default(cuid())
   content     String
-  test        Test     @relation(fields: [testId], references: [id])
+  test        Quiz     @relation(fields: [testId], references: [id])
   testId      String
   answers     Answer[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("questions")
+
 }
 // ANSWER MODEL
 model Answer {
@@ -61,4 +74,9 @@ model Answer {
   isCorrect  Boolean
   question   Question @relation(fields: [questionId], references: [id])
   questionId String
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("answers")
 }

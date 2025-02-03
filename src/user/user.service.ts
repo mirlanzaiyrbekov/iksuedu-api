@@ -20,14 +20,12 @@ export class UserService {
 			const isExist = await this.findByEmail(dto.email)
 			if (!isExist) {
 				const hashed = await argon2.hash(dto.password, { hashLength: 12 })
-				return await this.prismaService.user.create({
+				return await this.prismaService.teacher.create({
 					data: {
 						firstName: dto.firstName,
 						lastName: dto.lastName,
-						thirdName: dto.thirdName,
 						email: dto.email,
 						password: hashed,
-						phone: dto.phone,
 					},
 				})
 			}
@@ -41,7 +39,7 @@ export class UserService {
 
 	async findByEmail(email: string) {
 		try {
-			return await this.prismaService.user.findUnique({
+			return await this.prismaService.teacher.findUnique({
 				where: {
 					email,
 				},
@@ -53,17 +51,15 @@ export class UserService {
 
 	async findUserProfile(email: string) {
 		try {
-			const user = await this.prismaService.user.findUnique({
+			const user = await this.prismaService.teacher.findUnique({
 				where: {
 					email,
 				},
-
 				select: {
+					id: true,
 					firstName: true,
 					lastName: true,
-					thirdName: true,
 					email: true,
-					phone: true,
 					tests: {
 						include: {
 							questions: {
@@ -71,6 +67,9 @@ export class UserService {
 									answers: true,
 								},
 							},
+						},
+						orderBy: {
+							createdAt: 'desc',
 						},
 					},
 				},

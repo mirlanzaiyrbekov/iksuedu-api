@@ -1,17 +1,85 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { QuizDTO } from './dto/quiz.dto';
+import { Injectable } from '@nestjs/common'
+import { MessageService } from 'src/message/message.service'
+import { PrismaService } from 'src/prisma/prisma.service'
+import { QuizCreateDTO, QuizUpdateDTO } from './dto/quiz.dto'
 
 @Injectable()
 export class QuizService {
-  constructor(private readonly prismaService: PrismaService) {}
+	constructor(
+		private readonly prismaService: PrismaService,
+		private readonly messageService: MessageService,
+	) {}
 
-  async create(dto: QuizDTO) {
-    try {
-    } catch (error) {
-      throw error;
-    }
-  }
-  async update() {}
-  async delete() {}
+	async create(dto: QuizCreateDTO) {
+		try {
+			await this.prismaService.quiz.create({
+				data: {
+					title: dto.title,
+					expires: dto.expires,
+					teacher: {
+						connect: {
+							id: dto.teacherId,
+						},
+					},
+					questions: {
+						create: dto.questions.map((question) => ({
+							content: question.content,
+							answers: {
+								create: question.answers.map((answer) => ({
+									content: answer.content,
+									isCorrect: answer.isCorrect,
+								})),
+							},
+						})),
+					},
+				},
+			})
+			return this.messageService.sendMessageToClient(
+				'Тест успешно создан',
+				true,
+			)
+		} catch (error) {
+			throw error
+		}
+	}
+	async update(dto: QuizUpdateDTO) {
+		try {
+			await this.prismaService.quiz.update({
+				where: { id: dto.id },
+				data: {
+					title: dto.title,
+					expires: dto.expires,
+					questions: {
+						update: dto.questions
+							? dto.questions.map((question) => ({
+									where: { id: question.id },
+									data: {
+										content: question.content,
+										answers: {
+											update: question.answers
+												? question.answers.map((answer) => ({
+														where: { id: answer.id },
+														data: {
+															content: answer.content,
+															isCorrect: answer.isCorrect,
+														},
+													}))
+												: undefined,
+										},
+									},
+								}))
+							: undefined,
+					},
+				},
+			})
+
+			return this.messageService.sendMessageToClient(
+				'Тест успешно обновлён',
+				true,
+			)
+		} catch (error) {
+			throw error
+		}
+	}
+	async delete() {}
 }
