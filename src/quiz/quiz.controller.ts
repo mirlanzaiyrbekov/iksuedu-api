@@ -1,8 +1,10 @@
 import {
 	Body,
 	Controller,
+	Get,
 	HttpCode,
 	HttpStatus,
+	Param,
 	Patch,
 	Post,
 	UseGuards,
@@ -28,10 +30,16 @@ export class QuizController {
 	@Patch(':id')
 	@UseGuards(AuthGuard)
 	@UsePipes(new ValidationPipe())
-	@HttpCode(HttpStatus.CREATED)
+	@HttpCode(HttpStatus.OK)
 	update(@Body() dto: QuizUpdateDTO) {
 		return this.quizService.update(dto)
 	}
 
+	@Get(':id')
+	@UseGuards(AuthGuard)
+	@HttpCode(HttpStatus.OK)
+	findById(@Param('id') id: string) {
+		return this.quizService.findById(id)
+	}
 	delete() {}
 }

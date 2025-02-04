@@ -81,5 +81,35 @@ export class QuizService {
 			throw error
 		}
 	}
+
+	async findById(id: string) {
+		try {
+			return await this.prismaService.quiz.findUnique({
+				where: {
+					id,
+				},
+				select: {
+					id: true,
+					title: true,
+					createdAt: true,
+					expires: true,
+					defendant: true,
+					teacher: {
+						select: {
+							id: true,
+							firstName: true,
+						},
+					},
+					questions: {
+						select: {
+							answers: true,
+						},
+					},
+				},
+			})
+		} catch (error) {
+			throw error
+		}
+	}
 	async delete() {}
 }
