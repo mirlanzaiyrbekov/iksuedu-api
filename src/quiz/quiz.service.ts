@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { MessageService } from 'src/message/message.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { QuizCreateDTO, QuizUpdateDTO } from './dto/quiz.dto'
@@ -102,7 +102,15 @@ export class QuizService {
 					},
 					questions: {
 						select: {
-							answers: true,
+							id: true,
+							content: true,
+							answers: {
+								select: {
+									id: true,
+									content: true,
+									isCorrect: true,
+								},
+							},
 						},
 					},
 				},
@@ -111,5 +119,16 @@ export class QuizService {
 			throw error
 		}
 	}
-	async delete() {}
+
+	async delete(id: string) {
+		try {
+			const find = await this.findById(id)
+			if (!find) throw new NotFoundException('Удаление невозможно!')
+			await this.prismaService.quiz.delete({
+				where: {
+					id,
+				},
+			})
+		} catch (error) {}
+	}
 }
