@@ -40,7 +40,7 @@ model Defendant {
 }
 // TEST MODEL
 model Quiz {
-  id          String     @id @default(cuid())
+  id          String      @id @default(cuid())
   title       String     
   expires     DateTime
   defendantId String?
@@ -48,6 +48,7 @@ model Quiz {
   teacherId   String
   teacher     Teacher     @relation("TeacherTests", fields: [teacherId], references: [id])
   questions   Question[]  
+  url         String      @unique
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

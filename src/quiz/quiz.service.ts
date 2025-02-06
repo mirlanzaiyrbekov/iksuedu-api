@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import slugify from 'slugify'
 import { MessageService } from 'src/message/message.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { QuestionCreateDTO } from './dto/question.dto'
@@ -13,10 +14,17 @@ export class QuizService {
 
 	async create(dto: QuizCreateDTO) {
 		try {
+			const slugName = slugify(dto.title, {
+				locale: 'ru',
+				lower: true,
+				trim: true,
+				replacement: '-',
+			})
 			await this.prismaService.quiz.create({
 				data: {
 					title: dto.title,
 					expires: dto.expires,
+					url: `${dto.urlAddress}/${slugName}`,
 					teacher: {
 						connect: {
 							id: dto.teacherId,
@@ -158,6 +166,43 @@ export class QuizService {
 		}
 	}
 
+	async findByUrl(url: string) {
+		try {
+			return await this.prismaService.quiz.findUnique({
+				where: {
+					url,
+				},
+				select: {
+					id: true,
+					title: true,
+					createdAt: true,
+					expires: true,
+					teacher: {
+						select: {
+							id: true,
+							firstName: true,
+							lastName: true,
+						},
+					},
+					questions: {
+						select: {
+							id: true,
+							content: true,
+							answers: {
+								select: {
+									id: true,
+									content: true,
+									isCorrect: true,
+								},
+							},
+						},
+					},
+				},
+			})
+		} catch (error) {
+			throw error
+		}
+	}
 	async findAllUserQuiz(email: string) {
 		try {
 			return await this.prismaService.quiz.findMany({

@@ -16,6 +16,10 @@ export class QuizCreateDTO {
 	@Type(() => Date)
 	expires: Date
 
+	@IsNotEmpty()
+	@IsString()
+	urlAddress: string
+
 	questions: QuestionCreateDTO[]
 }
 

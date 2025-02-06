@@ -51,6 +51,13 @@ export class QuizController {
 		return this.quizService.findById(id)
 	}
 
+	@Get('url/:url')
+	@UseGuards(AuthGuard)
+	@HttpCode(HttpStatus.OK)
+	findByUrl(@Param('url') url: string) {
+		return this.quizService.findByUrl(url)
+	}
+
 	@Get('question/:id')
 	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
