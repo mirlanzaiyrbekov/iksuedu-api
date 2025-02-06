@@ -60,18 +60,6 @@ export class UserService {
 					firstName: true,
 					lastName: true,
 					email: true,
-					tests: {
-						include: {
-							questions: {
-								include: {
-									answers: true,
-								},
-							},
-						},
-						orderBy: {
-							createdAt: 'desc',
-						},
-					},
 				},
 			})
 			if (!user) throw new UnauthorizedException()

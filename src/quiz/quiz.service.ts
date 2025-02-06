@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { MessageService } from 'src/message/message.service'
 import { PrismaService } from 'src/prisma/prisma.service'
+import { QuestionCreateDTO } from './dto/question.dto'
 import { QuizCreateDTO, QuizUpdateDTO } from './dto/quiz.dto'
 
 @Injectable()
@@ -49,30 +50,67 @@ export class QuizService {
 				data: {
 					title: dto.title,
 					expires: dto.expires,
-					questions: {
-						update: dto.questions
-							? dto.questions.map((question) => ({
-									where: { id: question.id },
-									data: {
-										content: question.content,
-										answers: {
-											update: question.answers
-												? question.answers.map((answer) => ({
-														where: { id: answer.id },
-														data: {
-															content: answer.content,
-															isCorrect: answer.isCorrect,
-														},
-													}))
-												: undefined,
-										},
-									},
-								}))
-							: undefined,
-					},
 				},
 			})
 
+			const quizUpdatePromises: any[] = []
+			if (dto.questions) {
+				const existingQuestions = dto.questions.filter(
+					(question) => question.id,
+				)
+				const newQuestions: QuestionCreateDTO[] = dto.questions.filter(
+					(question) => !question.id,
+				) as QuestionCreateDTO[]
+
+				for (const question of existingQuestions) {
+					const updateQuestion = this.prismaService.question.update({
+						where: { id: question.id },
+						data: {
+							content: question.content,
+							answers: {
+								update: question.answers
+									? question.answers
+											.filter((a) => a.id)
+											.map((answer) => ({
+												where: { id: answer.id },
+												data: {
+													content: answer.content,
+													isCorrect: answer.isCorrect,
+												},
+											}))
+									: undefined,
+								// @ts-ignore
+								create: question.answers
+									?.filter((a) => !a.id)
+									.map((answer) => ({
+										content: answer.content,
+										isCorrect: answer.isCorrect,
+									})),
+							},
+						},
+					})
+					quizUpdatePromises.push(updateQuestion)
+				}
+				if (newQuestions.length) {
+					for (const newQuestion of newQuestions) {
+						const createQuestion = this.prismaService.question.create({
+							data: {
+								content: newQuestion.content,
+								test: { connect: { id: dto.id } },
+								answers: {
+									create: newQuestion.answers?.map((answer) => ({
+										content: answer.content,
+										isCorrect: answer.isCorrect,
+									})),
+								},
+							},
+						})
+						quizUpdatePromises.push(createQuestion)
+					}
+				}
+			}
+
+			await Promise.all(quizUpdatePromises)
 			return this.messageService.sendMessageToClient(
 				'Тест успешно обновлён',
 				true,
@@ -120,7 +158,40 @@ export class QuizService {
 		}
 	}
 
-	async delete(id: string) {
+	async findAllUserQuiz(email: string) {
+		try {
+			return await this.prismaService.quiz.findMany({
+				where: {
+					teacher: {
+						email,
+					},
+				},
+				include: {
+					questions: {
+						include: {
+							answers: true,
+						},
+					},
+				},
+			})
+		} catch (error) {
+			throw error
+		}
+	}
+
+	async findQuestionById(id: string) {
+		try {
+			return await this.prismaService.answer.findUnique({
+				where: {
+					id,
+				},
+			})
+		} catch (error) {
+			throw error
+		}
+	}
+
+	async deleteQuiz(id: string) {
 		try {
 			const find = await this.findById(id)
 			if (!find) throw new NotFoundException('Удаление невозможно!')
@@ -129,6 +200,46 @@ export class QuizService {
 					id,
 				},
 			})
-		} catch (error) {}
+			return this.messageService.sendMessageToClient(
+				'Тест и его вопросы полностью удалены',
+				true,
+			)
+		} catch (error) {
+			throw error
+		}
+	}
+
+	async deleteQuestion(id: string) {
+		try {
+			const find = await this.prismaService.question.findUnique({
+				where: { id },
+			})
+			if (!find)
+				throw new NotFoundException('Удаление невозможно! Запись не найдена')
+			await this.prismaService.question.delete({
+				where: {
+					id,
+				},
+			})
+			return this.messageService.sendMessageToClient('Вопрос удален', true)
+		} catch (error) {
+			throw error
+		}
+	}
+
+	async deleteAnswer(id: string) {
+		try {
+			const find = await this.prismaService.answer.findUnique({ where: { id } })
+			if (!find)
+				throw new NotFoundException('Удаление невозможно! Запись не найдена')
+			await this.prismaService.answer.delete({
+				where: {
+					id,
+				},
+			})
+			return this.messageService.sendMessageToClient('Ответ удален', true)
+		} catch (error) {
+			throw error
+		}
 	}
 }
