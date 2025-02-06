@@ -41,7 +41,6 @@ export class QuizController {
 	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
 	findAllUserQuiz(@UseCurrentUser('email') email: string) {
-		console.log(email)
 		return this.quizService.findAllUserQuiz(email)
 	}
 
@@ -70,7 +69,6 @@ export class QuizController {
 	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
 	deleteQuestion(@Param('id') id: string) {
-		console.log(id)
 		return this.quizService.deleteQuestion(id)
 	}
 
