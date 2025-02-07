@@ -14,7 +14,12 @@ import {
 } from '@nestjs/common'
 import { UseCurrentUser } from 'src/decorators/useCurrentUser'
 import { AuthGuard } from 'src/guards/auth.guard'
-import { QuizCreateDTO, QuizUpdateDTO } from './dto/quiz.dto'
+import {
+	DefendantCreateDTO,
+	QuizCreateDTO,
+	QuizResultsDTO,
+	QuizUpdateDTO,
+} from './dto/quiz.dto'
 import { QuizService } from './quiz.service'
 
 @Controller('quiz')
@@ -37,6 +42,19 @@ export class QuizController {
 		return this.quizService.update(dto)
 	}
 
+	@Post('defendant')
+	@UsePipes(new ValidationPipe())
+	@HttpCode(HttpStatus.OK)
+	createDefendant(@Body() dto: DefendantCreateDTO) {
+		return this.quizService.createDefendant(dto)
+	}
+
+	@Post('results')
+	@HttpCode(HttpStatus.OK)
+	quizResults(@Body() dto: QuizResultsDTO) {
+		return this.quizService.quizResults(dto)
+	}
+
 	@Get()
 	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
@@ -51,8 +69,7 @@ export class QuizController {
 		return this.quizService.findById(id)
 	}
 
-	@Get('url/:url')
-	@UseGuards(AuthGuard)
+	@Get('by-url/:url')
 	@HttpCode(HttpStatus.OK)
 	findByUrl(@Param('url') url: string) {
 		return this.quizService.findByUrl(url)

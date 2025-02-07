@@ -1,5 +1,13 @@
 import { Type } from 'class-transformer'
-import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import {
+	IsArray,
+	IsDate,
+	IsNotEmpty,
+	IsOptional,
+	IsString,
+	ValidateNested,
+} from 'class-validator'
+import { AnswerDTO } from './answer.dto'
 import { QuestionCreateDTO, QuestionUpdateDTO } from './question.dto'
 
 export class QuizCreateDTO {
@@ -16,11 +24,29 @@ export class QuizCreateDTO {
 	@Type(() => Date)
 	expires: Date
 
-	@IsNotEmpty()
-	@IsString()
-	urlAddress: string
-
 	questions: QuestionCreateDTO[]
+}
+
+export class DefendantCreateDTO {
+	@IsString()
+	@IsNotEmpty()
+	firstName: string
+
+	@IsString()
+	@IsNotEmpty()
+	lastName: string
+
+	@IsString()
+	@IsNotEmpty()
+	email: string
+
+	@IsString()
+	@IsNotEmpty()
+	school: string
+
+	@IsString()
+	@IsNotEmpty()
+	testId: string
 }
 
 export class QuizUpdateDTO {
@@ -38,4 +64,15 @@ export class QuizUpdateDTO {
 
 	@IsOptional()
 	questions?: QuestionUpdateDTO[]
+}
+
+export class QuizResultsDTO {
+	@IsString()
+	@IsNotEmpty()
+	quizId: string
+
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => AnswerDTO)
+	answers: AnswerDTO[]
 }

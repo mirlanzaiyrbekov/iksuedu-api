@@ -1,9 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common'
 import slugify from 'slugify'
 import { MessageService } from 'src/message/message.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { QuestionCreateDTO } from './dto/question.dto'
-import { QuizCreateDTO, QuizUpdateDTO } from './dto/quiz.dto'
+import {
+	DefendantCreateDTO,
+	QuizCreateDTO,
+	QuizResultsDTO,
+	QuizUpdateDTO,
+} from './dto/quiz.dto'
 
 @Injectable()
 export class QuizService {
@@ -24,7 +33,7 @@ export class QuizService {
 				data: {
 					title: dto.title,
 					expires: dto.expires,
-					url: `${dto.urlAddress}/${slugName}`,
+					url: slugName,
 					teacher: {
 						connect: {
 							id: dto.teacherId,
@@ -128,6 +137,110 @@ export class QuizService {
 		}
 	}
 
+	async createDefendant(dto: DefendantCreateDTO) {
+		try {
+			const defendant = await this.prismaService.defendant.findUnique({
+				where: {
+					email: dto.email,
+				},
+				include: {
+					tests: true,
+				},
+			})
+
+			if (defendant) {
+				const hasPassedTest = defendant.tests.some(
+					(quiz) => quiz.id === dto.testId,
+				)
+				if (hasPassedTest) {
+					throw new BadRequestException('Вы уже прошли этот тест')
+				} else {
+					await this.prismaService.defendant.update({
+						where: { email: dto.email },
+						data: {
+							tests: {
+								connect: {
+									id: dto.testId,
+								},
+							},
+						},
+					})
+
+					return this.messageService.sendMessageToClient(
+						'Тест активен для вас',
+						true,
+					)
+				}
+			} else {
+				await this.prismaService.defendant.create({
+					data: {
+						email: dto.email,
+						firstName: dto.firstName,
+						lastName: dto.lastName,
+						school: dto.school,
+						tests: {
+							connect: {
+								id: dto.testId,
+							},
+						},
+					},
+				})
+
+				return this.messageService.sendMessageToClient(
+					'Тест активен для вас',
+					true,
+				)
+			}
+		} catch (error) {
+			throw error
+		}
+	}
+
+	async quizResults(dto: QuizResultsDTO) {
+		try {
+			const answersArray = Object.entries(dto.answers).map(
+				([questionId, answerId]) => ({ questionId, answerId }),
+			)
+			const questionsWithCorrectAnswers =
+				await this.prismaService.question.findMany({
+					where: {
+						testId: dto.quizId,
+					},
+					include: {
+						answers: {
+							where: {
+								isCorrect: true,
+							},
+						},
+					},
+				})
+
+			const correctAnswerMap = new Map(
+				questionsWithCorrectAnswers.map((q) => [q.id, q.answers[0]?.id]),
+			)
+
+			let correctCount = 0
+			answersArray.forEach(({ questionId, answerId }) => {
+				if (correctAnswerMap.get(questionId) === answerId?.toString()) {
+					correctCount++
+				}
+			})
+			const totalQuestions = questionsWithCorrectAnswers.length
+			const score = (correctCount / totalQuestions) * 100
+
+			return {
+				correctAnswers: correctCount,
+				totalQuestions,
+				score,
+				success: true,
+				message: 'Тест завершен',
+				passed: score >= 50,
+			}
+		} catch (error) {
+			throw error
+		}
+	}
+
 	async findById(id: string) {
 		try {
 			return await this.prismaService.quiz.findUnique({
@@ -140,7 +253,7 @@ export class QuizService {
 					createdAt: true,
 					expires: true,
 					url: true,
-					defendant: true,
+					defendants: true,
 					teacher: {
 						select: {
 							id: true,
@@ -176,8 +289,15 @@ export class QuizService {
 				select: {
 					id: true,
 					title: true,
+					url: true,
 					createdAt: true,
 					expires: true,
+					defendants: {
+						select: {
+							id: true,
+							email: true,
+						},
+					},
 					teacher: {
 						select: {
 							id: true,

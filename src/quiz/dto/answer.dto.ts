@@ -22,3 +22,13 @@ export class AnswerUpdateDTO {
 	@IsOptional()
 	content?: string
 }
+
+export class AnswerDTO {
+	@IsString()
+	@IsNotEmpty()
+	questionId: string
+
+	@IsString()
+	@IsNotEmpty()
+	answerId: string
+}

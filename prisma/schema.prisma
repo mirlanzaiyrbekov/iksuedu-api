@@ -31,7 +31,7 @@ model Defendant {
   id          String    @id @default(cuid())
   firstName   String    @map("first_name")
   lastName    String    @map("last_name")
-  thirdName   String    @map("third_name")
+  email       String    @unique
   school      String    
   tests       Quiz[]    @relation("TestDefendant")
   createdAt   DateTime  @default(now())
@@ -43,11 +43,12 @@ model Quiz {
   id          String      @id @default(cuid())
   title       String     
   expires     DateTime
-  defendantId String?
-  defendant   Defendant?  @relation("TestDefendant",fields: [defendantId],references: [id], onDelete: Cascade)
   teacherId   String
   teacher     Teacher     @relation("TeacherTests", fields: [teacherId], references: [id])
   questions   Question[]  
+  defendants  Defendant[] @relation("TestDefendant")
+  passed      Int?
+  fileds      Int?
   url         String      @unique
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
