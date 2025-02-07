@@ -7,7 +7,7 @@ async function bootstrap() {
 	})
 	app.setGlobalPrefix('api/v1', { exclude: ['/'] })
 	app.enableCors({
-		origin: ['http://localhost:5173'],
+		origin: ['http://localhost:5173', 'https://iksu.academy'],
 		methods: 'GET,POST,PUT,PATCH,HEAD,DELETE',
 		credentials: true,
 	})
