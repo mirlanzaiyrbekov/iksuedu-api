@@ -139,6 +139,7 @@ export class QuizService {
 					title: true,
 					createdAt: true,
 					expires: true,
+					url: true,
 					defendant: true,
 					teacher: {
 						select: {
