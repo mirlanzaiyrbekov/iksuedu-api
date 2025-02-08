@@ -48,8 +48,8 @@ model Quiz {
   questions   Question[]  
   defendants  Defendant[] @relation("TestDefendant")
   passedScore Int         @default(60)  @map("passed_score")
-  passed      Int        @default(0)
-  didNotPass  Int        @default(0) @map("did_not_pass")
+  passed      Int         @default(0)
+  didNotPass  Int         @default(0) @map("did_not_pass")
   url         String      @unique
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

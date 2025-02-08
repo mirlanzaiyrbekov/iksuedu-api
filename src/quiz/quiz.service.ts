@@ -303,6 +303,15 @@ export class QuizService {
 
 	async findByUrl(url: string) {
 		try {
+			const quiz = await this.prismaService.quiz.findUnique({
+				where: {
+					url,
+				},
+			})
+			const now = new Date()
+			if (quiz && quiz.expires < now) {
+				throw new BadRequestException('Тест не активен')
+			}
 			return await this.prismaService.quiz.findUnique({
 				where: {
 					url,
