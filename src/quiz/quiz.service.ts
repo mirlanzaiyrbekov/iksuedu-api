@@ -61,6 +61,7 @@ export class QuizService {
 			throw error
 		}
 	}
+
 	async update(dto: QuizUpdateDTO) {
 		try {
 			await this.prismaService.quiz.update({
