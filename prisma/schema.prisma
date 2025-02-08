@@ -47,8 +47,9 @@ model Quiz {
   teacher     Teacher     @relation("TeacherTests", fields: [teacherId], references: [id])
   questions   Question[]  
   defendants  Defendant[] @relation("TestDefendant")
-  passed      Int?
-  fileds      Int?
+  passedScore Int         @default(60)  @map("passed_score")
+  passed      Int        @default(0)
+  didNotPass  Int        @default(0) @map("did_not_pass")
   url         String      @unique
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

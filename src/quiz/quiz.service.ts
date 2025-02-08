@@ -34,6 +34,7 @@ export class QuizService {
 					title: dto.title,
 					expires: dto.expires,
 					url: slugName,
+					passedScore: +dto.passedScore,
 					teacher: {
 						connect: {
 							id: dto.teacherId,
@@ -67,6 +68,7 @@ export class QuizService {
 				data: {
 					title: dto.title,
 					expires: dto.expires,
+					passedScore: +dto.passedScore,
 				},
 			})
 
@@ -198,9 +200,14 @@ export class QuizService {
 
 	async quizResults(dto: QuizResultsDTO) {
 		try {
+			const quiz = await this.findById(dto.quizId)
+
+			if (!quiz) throw new BadRequestException('Прохождение теста невозможно.')
+
 			const answersArray = Object.entries(dto.answers).map(
 				([questionId, answerId]) => ({ questionId, answerId }),
 			)
+
 			const questionsWithCorrectAnswers =
 				await this.prismaService.question.findMany({
 					where: {
@@ -220,6 +227,7 @@ export class QuizService {
 			)
 
 			let correctCount = 0
+
 			answersArray.forEach(({ questionId, answerId }) => {
 				if (correctAnswerMap.get(questionId) === answerId?.toString()) {
 					correctCount++
@@ -227,6 +235,15 @@ export class QuizService {
 			})
 			const totalQuestions = questionsWithCorrectAnswers.length
 			const score = (correctCount / totalQuestions) * 100
+			const passed = score >= quiz.passedScore
+
+			await this.prismaService.quiz.update({
+				where: { id: dto.quizId },
+				data: {
+					passed: passed ? quiz.passed + 1 : quiz.passed,
+					didNotPass: !passed ? quiz.didNotPass + 1 : quiz.didNotPass,
+				},
+			})
 
 			return {
 				correctAnswers: correctCount,
@@ -234,7 +251,7 @@ export class QuizService {
 				score,
 				success: true,
 				message: 'Тест завершен',
-				passed: score >= 50,
+				passed,
 			}
 		} catch (error) {
 			throw error
@@ -252,6 +269,9 @@ export class QuizService {
 					title: true,
 					createdAt: true,
 					expires: true,
+					passed: true,
+					passedScore: true,
+					didNotPass: true,
 					url: true,
 					defendants: true,
 					teacher: {
@@ -324,6 +344,7 @@ export class QuizService {
 			throw error
 		}
 	}
+
 	async findAllUserQuiz(email: string) {
 		try {
 			return await this.prismaService.quiz.findMany({
