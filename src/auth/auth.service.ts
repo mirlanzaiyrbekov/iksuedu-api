@@ -21,9 +21,11 @@ export class AuthService {
 	async signIn(dto: SignInDTO) {
 		try {
 			const user = await this.userService.findByEmail(dto.email)
-			if (!user) throw new BadRequestException('Пользователь не найден')
+			if (!user)
+				throw new BadRequestException('Не правильный E-mail или пароль')
 			const comparePass = await argon2.verify(user.password, dto.password)
-			if (!comparePass) throw new BadRequestException('Неправильный пароль')
+			if (!comparePass)
+				throw new BadRequestException('Не правильный E-mail или пароль')
 			const payload = { id: user.id, email: user.email }
 			const access_token = await this.jwtService.signAsync(payload)
 			return this.messageService.sendMessageToClient(
