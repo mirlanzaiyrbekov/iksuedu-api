@@ -34,6 +34,6 @@ export class UserController {
 	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
 	findAllUserQuiz(@UseCurrentUser('email') email: string) {
-		return this.userService.findAllQuizes(email)
+		return this.userService.findAllUserQuizes(email)
 	}
 }

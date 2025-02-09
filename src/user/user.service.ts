@@ -6,6 +6,7 @@ import {
 import * as argon2 from 'argon2'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { createUserDTO } from './dto/user.dto'
+import { RETURN_USER_PROFILE_FIELDS } from './return.user.fields'
 
 @Injectable()
 export class UserService {
@@ -15,10 +16,10 @@ export class UserService {
 	 * @param dto [USER DTO]
 	 * @description CREATE USER TO DB
 	 */
-	async create(dto: createUserDTO) {
+	async createUser(dto: createUserDTO) {
 		try {
-			const isExist = await this.findByEmail(dto.email)
-			if (!isExist) {
+			const user = await this.findUserByEmail(dto.email)
+			if (!user) {
 				const hashed = await argon2.hash(dto.password, { hashLength: 12 })
 				return await this.prismaService.teacher.create({
 					data: {
@@ -37,7 +38,13 @@ export class UserService {
 		}
 	}
 
-	async findByEmail(email: string) {
+	/**
+	 *
+	 * @param email
+	 * @returns USER
+	 * @description FIND USER BY EMAIL
+	 */
+	async findUserByEmail(email: string) {
 		try {
 			return await this.prismaService.teacher.findUnique({
 				where: {
@@ -49,18 +56,19 @@ export class UserService {
 		}
 	}
 
+	/**
+	 *
+	 * @param email
+	 * @returns USER PROFILE
+	 * @description FIND USER PROFILE
+	 */
 	async findUserProfile(email: string) {
 		try {
 			const user = await this.prismaService.teacher.findUnique({
 				where: {
 					email,
 				},
-				select: {
-					id: true,
-					firstName: true,
-					lastName: true,
-					email: true,
-				},
+				select: RETURN_USER_PROFILE_FIELDS,
 			})
 			if (!user) throw new UnauthorizedException()
 			return user
@@ -69,7 +77,12 @@ export class UserService {
 		}
 	}
 
-	async findAllQuizes(email: string) {
+	/**
+	 *
+	 * @param email
+	 * @returns ALL USER QUIZES
+	 */
+	async findAllUserQuizes(email: string) {
 		try {
 			return await this.prismaService.quiz.findMany({
 				where: {
