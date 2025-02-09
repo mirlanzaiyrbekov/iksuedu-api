@@ -14,6 +14,11 @@ import { SignInDTO, SignUpDTO } from './dto/auth.dto'
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
+	/**
+	 *
+	 * @param dto
+	 * @returns MESSAGE OF SUCCESS LOGIN & ACCESS TOKEN
+	 */
 	@Post('signin')
 	@HttpCode(HttpStatus.OK)
 	@UsePipes(new ValidationPipe())
@@ -21,6 +26,12 @@ export class AuthController {
 		return this.authService.signIn(dto)
 	}
 
+	/**
+	 *
+	 * @param dto
+	 * @returns MESSAGE
+	 * @description REGISTER NEW USER
+	 */
 	@Post('signup')
 	@HttpCode(HttpStatus.OK)
 	@UsePipes(new ValidationPipe())

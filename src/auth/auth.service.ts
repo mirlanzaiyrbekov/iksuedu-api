@@ -16,11 +16,11 @@ export class AuthService {
 	/**
 	 *
 	 * @param dto
-	 * @returns ACCESS TOKEN
+	 * @returns MESSAGE & ACCESS TOKEN
 	 */
 	async signIn(dto: SignInDTO) {
 		try {
-			const user = await this.userService.findByEmail(dto.email)
+			const user = await this.userService.findUserByEmail(dto.email)
 			if (!user)
 				throw new BadRequestException('Не правильный E-mail или пароль')
 			const comparePass = await argon2.verify(user.password, dto.password)
@@ -45,7 +45,7 @@ export class AuthService {
 	 */
 	async signUp(dto: SignUpDTO) {
 		try {
-			await this.userService.create(dto)
+			await this.userService.createUser(dto)
 			return this.messageService.sendMessageToClient(
 				'Регистрация прошла успешно',
 				true,
