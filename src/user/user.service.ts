@@ -68,4 +68,25 @@ export class UserService {
 			throw error
 		}
 	}
+
+	async findAllQuizes(email: string) {
+		try {
+			return await this.prismaService.quiz.findMany({
+				where: {
+					teacher: {
+						email,
+					},
+				},
+				include: {
+					questions: {
+						include: {
+							answers: true,
+						},
+					},
+				},
+			})
+		} catch (error) {
+			throw error
+		}
+	}
 }

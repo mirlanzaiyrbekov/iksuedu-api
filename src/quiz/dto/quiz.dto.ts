@@ -1,6 +1,5 @@
 import { Type } from 'class-transformer'
 import {
-	IsArray,
 	IsDate,
 	IsNotEmpty,
 	IsOptional,
@@ -31,28 +30,6 @@ export class QuizCreateDTO {
 	questions: QuestionCreateDTO[]
 }
 
-export class DefendantCreateDTO {
-	@IsString()
-	@IsNotEmpty()
-	firstName: string
-
-	@IsString()
-	@IsNotEmpty()
-	lastName: string
-
-	@IsString()
-	@IsNotEmpty()
-	email: string
-
-	@IsString()
-	@IsNotEmpty()
-	school: string
-
-	@IsString()
-	@IsNotEmpty()
-	testId: string
-}
-
 export class QuizUpdateDTO {
 	@IsString()
 	id: string
@@ -79,8 +56,10 @@ export class QuizResultsDTO {
 	@IsNotEmpty()
 	quizId: string
 
-	@IsArray()
+	@IsString()
+	@IsNotEmpty()
+	defendantId: string
+
 	@ValidateNested({ each: true })
-	@Type(() => AnswerDTO)
-	answers: AnswerDTO[]
+	answers: AnswerDTO
 }

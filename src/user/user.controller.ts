@@ -13,10 +13,27 @@ import { UserService } from './user.service'
 export class UserController {
 	constructor(private readonly userService: UserService) {}
 
+	/**
+	 *
+	 * @param email
+	 * @returns USER PROFILE
+	 */
 	@Get('profile')
 	@HttpCode(HttpStatus.OK)
 	@UseGuards(AuthGuard)
 	findUserProfile(@UseCurrentUser('email') email: string) {
 		return this.userService.findUserProfile(email)
+	}
+
+	/**
+	 *
+	 * @param email
+	 * @returns ALL USER QUIZES
+	 */
+	@Get()
+	@UseGuards(AuthGuard)
+	@HttpCode(HttpStatus.OK)
+	findAllUserQuiz(@UseCurrentUser('email') email: string) {
+		return this.userService.findAllQuizes(email)
 	}
 }

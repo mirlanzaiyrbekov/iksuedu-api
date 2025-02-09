@@ -6,11 +6,13 @@ export class MessageService {
 		message: string,
 		success: boolean,
 		access_token?: string,
+		data?: any,
 	) {
 		return {
 			message,
 			success,
 			access_token,
+			data,
 		}
 	}
 }

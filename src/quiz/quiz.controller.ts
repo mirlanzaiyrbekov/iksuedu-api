@@ -12,54 +12,52 @@ import {
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common'
-import { UseCurrentUser } from 'src/decorators/useCurrentUser'
 import { AuthGuard } from 'src/guards/auth.guard'
-import {
-	DefendantCreateDTO,
-	QuizCreateDTO,
-	QuizResultsDTO,
-	QuizUpdateDTO,
-} from './dto/quiz.dto'
+import { QuizCreateDTO, QuizResultsDTO, QuizUpdateDTO } from './dto/quiz.dto'
 import { QuizService } from './quiz.service'
 
 @Controller('quiz')
 export class QuizController {
 	constructor(private readonly quizService: QuizService) {}
 
+	/**
+	 *
+	 * @param dto
+	 * @description CREATE QUIZ
+	 */
 	@Post()
 	@UseGuards(AuthGuard)
 	@UsePipes(new ValidationPipe())
 	@HttpCode(HttpStatus.CREATED)
-	create(@Body() dto: QuizCreateDTO) {
+	createQuiz(@Body() dto: QuizCreateDTO) {
 		return this.quizService.create(dto)
 	}
 
+	/**
+	 *
+	 * @param dto
+	 * @returns UPDATED QUIZ
+	 * @description UPDATE QUIZ
+	 */
 	@Patch(':id')
 	@UseGuards(AuthGuard)
 	@UsePipes(new ValidationPipe())
 	@HttpCode(HttpStatus.OK)
-	update(@Body() dto: QuizUpdateDTO) {
+	updateQuiz(@Body() dto: QuizUpdateDTO) {
 		return this.quizService.update(dto)
 	}
 
-	@Post('defendant')
+	/**
+	 *
+	 * @param dto
+	 * @description QUIZ PROCESS
+	 */
+	@Post('process')
+	@HttpCode(HttpStatus.OK)
 	@UsePipes(new ValidationPipe())
-	@HttpCode(HttpStatus.OK)
-	createDefendant(@Body() dto: DefendantCreateDTO) {
-		return this.quizService.createDefendant(dto)
-	}
-
-	@Post('results')
-	@HttpCode(HttpStatus.OK)
-	quizResults(@Body() dto: QuizResultsDTO) {
+	quizProcess(@Body() dto: QuizResultsDTO) {
+		console.log(dto)
 		return this.quizService.quizResults(dto)
-	}
-
-	@Get()
-	@UseGuards(AuthGuard)
-	@HttpCode(HttpStatus.OK)
-	findAllUserQuiz(@UseCurrentUser('email') email: string) {
-		return this.quizService.findAllUserQuiz(email)
 	}
 
 	@Get(':id')

@@ -28,15 +28,37 @@ model Teacher {
 }
 // DEFENDANT
 model Defendant {
-  id          String    @id @default(cuid())
-  firstName   String    @map("first_name")
-  lastName    String    @map("last_name")
-  email       String    @unique
+  id          String            @id @default(cuid())
+  firstName   String            @map("first_name")
+  lastName    String            @map("last_name")
+  email       String            @unique
   school      String    
-  tests       Quiz[]    @relation("TestDefendant")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  tests       Quiz[]            @relation("TestDefendant")
+  passed      Boolean           @default(false)
+  score       Int               @default(0)
+  answers     DefendantAnswer[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   @@map("defendant")
+}
+model DefendantAnswer {
+  id          String   @id @default(cuid())
+
+  defendant   Defendant @relation(fields: [defendantId], references: [id], onDelete: Cascade)
+  defendantId String    
+  
+  quiz        Quiz?      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId      String    
+
+  question    Question?  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId  String    
+
+  answer      Answer?    @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  answerId    String
+
+  createdAt   DateTime  @default(now())
+  @@unique([defendantId, quizId, questionId])
+  @@map("defendant_answers")
 }
 // TEST MODEL
 model Quiz {
@@ -51,6 +73,7 @@ model Quiz {
   passed      Int         @default(0)
   didNotPass  Int         @default(0) @map("did_not_pass")
   url         String      @unique
+  defendantAnswers        DefendantAnswer[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -63,6 +86,7 @@ model Question {
   test        Quiz      @relation(fields: [testId], references: [id], onDelete: Cascade)
   testId      String
   answers     Answer[]  
+  defendantAnswers        DefendantAnswer[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -76,6 +100,7 @@ model Answer {
   isCorrect   Boolean
   questionId  String
   question    Question    @relation(fields: [questionId], references: [id],onDelete: Cascade)
+  defendantAnswers        DefendantAnswer[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

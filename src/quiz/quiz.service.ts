@@ -7,12 +7,7 @@ import slugify from 'slugify'
 import { MessageService } from 'src/message/message.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { QuestionCreateDTO } from './dto/question.dto'
-import {
-	DefendantCreateDTO,
-	QuizCreateDTO,
-	QuizResultsDTO,
-	QuizUpdateDTO,
-} from './dto/quiz.dto'
+import { QuizCreateDTO, QuizResultsDTO, QuizUpdateDTO } from './dto/quiz.dto'
 
 @Injectable()
 export class QuizService {
@@ -140,65 +135,6 @@ export class QuizService {
 		}
 	}
 
-	async createDefendant(dto: DefendantCreateDTO) {
-		try {
-			const defendant = await this.prismaService.defendant.findUnique({
-				where: {
-					email: dto.email,
-				},
-				include: {
-					tests: true,
-				},
-			})
-
-			if (defendant) {
-				const hasPassedTest = defendant.tests.some(
-					(quiz) => quiz.id === dto.testId,
-				)
-				if (hasPassedTest) {
-					throw new BadRequestException('Вы уже прошли этот тест')
-				} else {
-					await this.prismaService.defendant.update({
-						where: { email: dto.email },
-						data: {
-							tests: {
-								connect: {
-									id: dto.testId,
-								},
-							},
-						},
-					})
-
-					return this.messageService.sendMessageToClient(
-						'Тест активен для вас',
-						true,
-					)
-				}
-			} else {
-				await this.prismaService.defendant.create({
-					data: {
-						email: dto.email,
-						firstName: dto.firstName,
-						lastName: dto.lastName,
-						school: dto.school,
-						tests: {
-							connect: {
-								id: dto.testId,
-							},
-						},
-					},
-				})
-
-				return this.messageService.sendMessageToClient(
-					'Тест активен для вас',
-					true,
-				)
-			}
-		} catch (error) {
-			throw error
-		}
-	}
-
 	async quizResults(dto: QuizResultsDTO) {
 		try {
 			const quiz = await this.findById(dto.quizId)
@@ -238,7 +174,7 @@ export class QuizService {
 			const score = (correctCount / totalQuestions) * 100
 			const passed = score >= quiz.passedScore
 
-			await this.prismaService.quiz.update({
+			const updateQuiz = this.prismaService.quiz.update({
 				where: { id: dto.quizId },
 				data: {
 					passed: passed ? quiz.passed + 1 : quiz.passed,
@@ -246,12 +182,42 @@ export class QuizService {
 				},
 			})
 
+			const updateDefendant = this.prismaService.defendant.update({
+				where: { id: dto.defendantId },
+				data: { passed, score },
+			})
+
+			await Promise.all([
+				updateDefendant,
+				updateQuiz,
+				...answersArray.map((answer) =>
+					this.prismaService.defendantAnswer.upsert({
+						where: {
+							defendantId_quizId_questionId: {
+								defendantId: dto.defendantId,
+								quizId: dto.quizId,
+								questionId: answer.questionId,
+							},
+						},
+						update: {
+							answerId: answer.answerId,
+						},
+						create: {
+							defendantId: dto.defendantId,
+							quizId: dto.quizId,
+							questionId: answer.questionId,
+							answerId: answer.answerId,
+						},
+					}),
+				),
+			])
 			return {
 				correctAnswers: correctCount,
 				totalQuestions,
 				score,
 				success: true,
 				message: 'Тест завершен',
+				passedScore: quiz.passedScore,
 				passed,
 			}
 		} catch (error) {
