@@ -8,6 +8,7 @@ import { MessageService } from 'src/message/message.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { QuestionCreateDTO } from './dto/question.dto'
 import { QuizCreateDTO, QuizResultsDTO, QuizUpdateDTO } from './dto/quiz.dto'
+import { RETURN_QUIZ_OBJECT_FIELDS } from './return.quiz.object'
 
 @Injectable()
 export class QuizService {
@@ -16,9 +17,14 @@ export class QuizService {
 		private readonly messageService: MessageService,
 	) {}
 
-	async create(dto: QuizCreateDTO) {
+	/**
+	 *
+	 * @param dto
+	 * @returns MESSAGE
+	 */
+	async createQuiz(dto: QuizCreateDTO) {
 		try {
-			const slugName = slugify(dto.title, {
+			const slugName = slugify(dto.title.trim(), {
 				locale: 'ru',
 				lower: true,
 				trim: true,
@@ -26,7 +32,7 @@ export class QuizService {
 			})
 			await this.prismaService.quiz.create({
 				data: {
-					title: dto.title,
+					title: dto.title.trim(),
 					expires: dto.expires,
 					url: slugName,
 					passedScore: +dto.passedScore,
@@ -57,12 +63,17 @@ export class QuizService {
 		}
 	}
 
-	async update(dto: QuizUpdateDTO) {
+	/**
+	 *
+	 * @param dto
+	 * @returns SUCCESS MESSAGE OF UPDATED QUIZ
+	 */
+	async updateQuiz(dto: QuizUpdateDTO) {
 		try {
 			await this.prismaService.quiz.update({
 				where: { id: dto.id },
 				data: {
-					title: dto.title,
+					title: dto.title?.trim(),
 					expires: dto.expires,
 					passedScore: +dto.passedScore,
 				},
@@ -135,10 +146,14 @@ export class QuizService {
 		}
 	}
 
-	async quizResults(dto: QuizResultsDTO) {
+	/**
+	 *
+	 * @param dto
+	 * @returns QUIZ PROCESS DATA
+	 */
+	async processQuiz(dto: QuizResultsDTO) {
 		try {
 			const quiz = await this.findById(dto.quizId)
-
 			if (!quiz) throw new BadRequestException('Прохождение теста невозможно.')
 
 			const answersArray = Object.entries(dto.answers).map(
@@ -164,12 +179,12 @@ export class QuizService {
 			)
 
 			let correctCount = 0
-
 			answersArray.forEach(({ questionId, answerId }) => {
 				if (correctAnswerMap.get(questionId) === answerId?.toString()) {
 					correctCount++
 				}
 			})
+
 			const totalQuestions = questionsWithCorrectAnswers.length
 			const score = (correctCount / totalQuestions) * 100
 			const passed = score >= quiz.passedScore
@@ -225,49 +240,30 @@ export class QuizService {
 		}
 	}
 
+	/**
+	 *
+	 * @param id
+	 * @returns ONE QUIZ BY ID
+	 */
 	async findById(id: string) {
 		try {
 			return await this.prismaService.quiz.findUnique({
 				where: {
 					id,
 				},
-				select: {
-					id: true,
-					title: true,
-					createdAt: true,
-					expires: true,
-					passed: true,
-					passedScore: true,
-					didNotPass: true,
-					url: true,
-					defendants: true,
-					teacher: {
-						select: {
-							id: true,
-							firstName: true,
-						},
-					},
-					questions: {
-						select: {
-							id: true,
-							content: true,
-							answers: {
-								select: {
-									id: true,
-									content: true,
-									isCorrect: true,
-								},
-							},
-						},
-					},
-				},
+				select: RETURN_QUIZ_OBJECT_FIELDS,
 			})
 		} catch (error) {
 			throw error
 		}
 	}
 
-	async findByUrl(url: string) {
+	/**
+	 *
+	 * @param url [SLUG]
+	 * @returns ONE QUIZ BY URL[SLUG] TO PROCESS TESTING
+	 */
+	async findByUrlToProcessTesting(url: string) {
 		try {
 			const quiz = await this.prismaService.quiz.findUnique({
 				where: {
@@ -275,8 +271,11 @@ export class QuizService {
 				},
 			})
 			const now = new Date()
-			if (quiz && quiz.expires < now) {
-				throw new BadRequestException('Тест не активен')
+			if (quiz && quiz.expires <= now) {
+				throw new BadRequestException({
+					message: 'Тест не активен',
+					expire: true,
+				})
 			}
 			return await this.prismaService.quiz.findUnique({
 				where: {

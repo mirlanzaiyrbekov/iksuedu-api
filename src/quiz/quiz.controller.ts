@@ -30,7 +30,7 @@ export class QuizController {
 	@UsePipes(new ValidationPipe())
 	@HttpCode(HttpStatus.CREATED)
 	createQuiz(@Body() dto: QuizCreateDTO) {
-		return this.quizService.create(dto)
+		return this.quizService.createQuiz(dto)
 	}
 
 	/**
@@ -44,7 +44,7 @@ export class QuizController {
 	@UsePipes(new ValidationPipe())
 	@HttpCode(HttpStatus.OK)
 	updateQuiz(@Body() dto: QuizUpdateDTO) {
-		return this.quizService.update(dto)
+		return this.quizService.updateQuiz(dto)
 	}
 
 	/**
@@ -56,10 +56,14 @@ export class QuizController {
 	@HttpCode(HttpStatus.OK)
 	@UsePipes(new ValidationPipe())
 	quizProcess(@Body() dto: QuizResultsDTO) {
-		console.log(dto)
-		return this.quizService.quizResults(dto)
+		return this.quizService.processQuiz(dto)
 	}
 
+	/**
+	 *
+	 * @param id
+	 * @returns ONE QUIZ BY ID
+	 */
 	@Get(':id')
 	@UseGuards(AuthGuard)
 	@HttpCode(HttpStatus.OK)
@@ -70,7 +74,7 @@ export class QuizController {
 	@Get('by-url/:url')
 	@HttpCode(HttpStatus.OK)
 	findByUrl(@Param('url') url: string) {
-		return this.quizService.findByUrl(url)
+		return this.quizService.findByUrlToProcessTesting(url)
 	}
 
 	@Get('question/:id')
