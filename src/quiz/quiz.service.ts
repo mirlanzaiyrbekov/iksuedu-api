@@ -21,6 +21,7 @@ export class QuizService {
 	 *
 	 * @param dto
 	 * @returns MESSAGE
+	 * @description CREATE QUIZ
 	 */
 	async createQuiz(dto: QuizCreateDTO) {
 		try {
@@ -36,6 +37,7 @@ export class QuizService {
 					expires: dto.expires,
 					url: slugName,
 					passedScore: +dto.passedScore,
+					// expireTime:dto.expireTime,
 					teacher: {
 						connect: {
 							id: dto.teacherId,
@@ -76,6 +78,7 @@ export class QuizService {
 					title: dto.title?.trim(),
 					expires: dto.expires,
 					passedScore: +dto.passedScore,
+					// expireTime:dto.expireTime,
 				},
 			})
 
@@ -277,6 +280,13 @@ export class QuizService {
 					expire: true,
 				})
 			}
+			// const timeExpire = new Date().getMilliseconds()
+			// if (quiz && quiz.expires <= now && quiz.expireTime <= timeExpire) {
+			// 	throw new BadRequestException({
+			// 		message: 'Тест не активен',
+			// 		expire: true,
+			// 	})
+			// }
 			return await this.prismaService.quiz.findUnique({
 				where: {
 					url,
@@ -320,6 +330,10 @@ export class QuizService {
 		}
 	}
 
+	/**
+	 *
+	 * @param email
+	 */
 	async findAllUserQuiz(email: string) {
 		try {
 			return await this.prismaService.quiz.findMany({

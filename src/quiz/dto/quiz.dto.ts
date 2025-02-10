@@ -23,6 +23,10 @@ export class QuizCreateDTO {
 	@Type(() => Date)
 	expires: Date
 
+	// @IsNumber()
+	// @IsNotEmpty()
+	// expireTime: number
+
 	@IsString()
 	@IsNotEmpty()
 	passedScore: string
@@ -42,6 +46,10 @@ export class QuizUpdateDTO {
 	@Type(() => Date)
 	@IsOptional()
 	expires: Date
+
+	// @IsNumber()
+	// @IsNotEmpty()
+	// expireTime: number
 
 	@IsString()
 	@IsNotEmpty()

@@ -65,6 +65,7 @@ model Quiz {
   id          String      @id @default(cuid())
   title       String     
   expires     DateTime
+  // expireTime   Int @default(now()) 202020229929292
   teacherId   String
   teacher     Teacher     @relation("TeacherTests", fields: [teacherId], references: [id])
   questions   Question[]  
