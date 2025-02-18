@@ -35,8 +35,8 @@ export class QuizService {
 				data: {
 					title: dto.title.trim(),
 					expires: dto.expires,
-					url: slugName,
-					passedScore: +dto.passedScore,
+					url: slugName.trim(),
+					passedScore: +dto.passedScore.replace('%', '').trim(),
 					// expireTime:dto.expireTime,
 					teacher: {
 						connect: {
@@ -77,7 +77,7 @@ export class QuizService {
 				data: {
 					title: dto.title?.trim(),
 					expires: dto.expires,
-					passedScore: +dto.passedScore,
+					passedScore: +dto.passedScore.replace('%', ''),
 					// expireTime:dto.expireTime,
 				},
 			})
