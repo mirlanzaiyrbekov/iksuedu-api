@@ -13,8 +13,7 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-// USER MODEL
+// MODELS
 model Teacher {
   id          String    @id @default(cuid())
   firstName   String    @map("first_name")
@@ -26,19 +25,25 @@ model Teacher {
   updatedAt   DateTime  @updatedAt
   @@map("teacher")
 }
-// DEFENDANT
 model Defendant {
-  id          String            @id @default(cuid())
-  firstName   String            @map("first_name")
-  lastName    String            @map("last_name")
-  email       String            @unique
-  school      String    
-  tests       Quiz[]            @relation("TestDefendant")
-  passed      Boolean           @default(false)
-  score       Int               @default(0)
-  answers     DefendantAnswer[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id            String              @id @default(cuid())
+  // DEPRECATED
+  firstName     String?             @map("first_name")
+  // DEPRECATED
+  lastName      String?             @map("last_name")
+  // NEW
+  fullName      String?             @map("full_name")
+  // DEPRECATED
+  email         String?             @unique
+  phone         String?
+  school        String    
+  tests         Quiz[]              @relation("TestDefendant")
+  passed        Boolean             @default(false)
+  score         Int                 @default(0)
+  answers       DefendantAnswer[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
   @@map("defendant")
 }
 model DefendantAnswer {
@@ -60,12 +65,10 @@ model DefendantAnswer {
   @@unique([defendantId, quizId, questionId])
   @@map("defendant_answers")
 }
-// TEST MODEL
 model Quiz {
   id          String      @id @default(cuid())
   title       String     
   expires     DateTime
-  // expireTime   Int @default(now()) 202020229929292
   teacherId   String
   teacher     Teacher     @relation("TeacherTests", fields: [teacherId], references: [id])
   questions   Question[]  
@@ -74,13 +77,16 @@ model Quiz {
   passed      Int         @default(0)
   didNotPass  Int         @default(0) @map("did_not_pass")
   url         String      @unique
+
   defendantAnswers        DefendantAnswer[]
+
+  attemp      Attemp[]
+
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   @@map("quiz")
 }
-// QUESTION MODEL
 model Question {
   id          String    @id @default(cuid())
   content     String
@@ -94,7 +100,6 @@ model Question {
   @@map("questions")
 
 }
-// ANSWER MODEL
 model Answer {
   id          String      @id @default(cuid())
   content     String
@@ -106,4 +111,17 @@ model Answer {
   updatedAt   DateTime    @updatedAt
 
   @@map("answers")
+}
+model Attemp{
+  id            String      @id @default(cuid())
+  quizId        String
+  quiz          Quiz        @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userAgent     String      @map("user_agent")
+  ipAddress     String      @map("ip_address")
+  deviceModel   String      @map("device_model")
+  fingerprint   String      
+  createdAt     DateTime    @default(now())
+
+  @@unique([quizId, fingerprint])
+  @@map("attemps")
 }

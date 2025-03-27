@@ -13,6 +13,7 @@ export class SignUpDTO {
 	@IsString()
 	@IsNotEmpty()
 	firstName: string
+
 	@IsString()
 	@IsNotEmpty()
 	lastName: string
@@ -20,6 +21,7 @@ export class SignUpDTO {
 	@IsString()
 	@IsNotEmpty()
 	password: string
+
 	@IsString()
 	@IsNotEmpty()
 	email: string

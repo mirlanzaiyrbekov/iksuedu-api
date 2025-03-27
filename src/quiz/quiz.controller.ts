@@ -55,8 +55,8 @@ export class QuizController {
 	@Post('process')
 	@HttpCode(HttpStatus.OK)
 	@UsePipes(new ValidationPipe())
-	quizProcess(@Body() dto: QuizResultsDTO) {
-		return this.quizService.processQuiz(dto)
+	processedQuiz(@Body() dto: QuizResultsDTO) {
+		return this.quizService.processedQuiz(dto)
 	}
 
 	/**

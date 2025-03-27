@@ -1,68 +1,60 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common'
 import { MessageService } from 'src/message/message.service'
 import { PrismaService } from 'src/prisma/prisma.service'
-import { DefendantCreateDTO } from './dto/defendant.dto'
+import { QuizService } from 'src/quiz/quiz.service'
+import { AttemptDTO, DefendantCreateDTO } from './dto/defendant.dto'
 
 @Injectable()
 export class DefendantService {
 	constructor(
 		private readonly prismaService: PrismaService,
 		private readonly messageService: MessageService,
+		private readonly quizService: QuizService,
 	) {}
 
+	/**
+	 *
+	 * @param dto
+	 * @description REGISTER DEFENDANT
+	 */
 	async create(dto: DefendantCreateDTO) {
 		try {
-			let defendant = await this.prismaService.defendant.findUnique({
+			// CHECKING IF DEFENDANT ALREADY PASSED THE QUIZ
+			await this.checkDefendantQuizProcess(dto.testId, dto.attempt)
+
+			await this.prismaService.quiz.update({
 				where: {
-					email: dto.email,
+					id: dto.testId,
 				},
-				include: {
-					tests: true,
+				data: {
+					attemp: {
+						create: {
+							ipAddress: dto.attempt.ipAddress,
+							userAgent: dto.attempt.userAgent,
+							deviceModel: dto.attempt.deviceModel,
+							fingerprint: dto.attempt.fingerprint,
+						},
+					},
 				},
 			})
 
-			if (defendant && defendant.tests.some((quiz) => quiz.id === dto.testId)) {
-				throw new BadRequestException('Вы уже прошли этот тест')
-			}
-			const testExists = await this.prismaService.quiz.findUnique({
-				where: { id: dto.testId },
-				select: { id: true },
+			const defendant = await this.prismaService.defendant.create({
+				data: {
+					fullName: dto.fullName,
+					school: dto.school,
+					phone: dto.phone,
+					tests: { connect: { id: dto.testId } },
+				},
 			})
-			if (!testExists) {
-				throw new BadRequestException('Тест не актуален')
-			}
-			if (!defendant) {
-				// @ts-ignore
-				defendant = await this.prismaService.defendant.create({
-					data: {
-						email: dto.email,
-						firstName: dto.firstName,
-						lastName: dto.lastName,
-						school: dto.school,
-						tests: {
-							connect: {
-								id: dto.testId,
-							},
-						},
-					},
-				})
-			} else {
-				await this.prismaService.defendant.update({
-					where: { email: dto.email },
-					data: {
-						tests: {
-							connect: {
-								id: dto.testId,
-							},
-						},
-					},
-				})
-			}
+
 			return this.messageService.sendMessageToClient(
 				'Тест активен для вас',
 				true,
 				undefined,
-				// @ts-ignore
 				defendant.id,
 			)
 		} catch (error) {
@@ -119,7 +111,7 @@ export class DefendantService {
 	 */
 	async findAllAnswers() {
 		try {
-			return await this.prismaService.defendantAnswer.findMany({})
+			return await this.prismaService.defendantAnswer.findMany()
 		} catch (error) {
 			throw error
 		}
@@ -171,6 +163,31 @@ export class DefendantService {
 				},
 			})
 		} catch (error) {
+			throw error
+		}
+	}
+
+	/**
+	 * @param dto ATTEMPT DTO
+	 * @returns BOOLEAN
+	 * @description CHECK IF DEFENDANT ALREADY PASSED THE QUIZ
+	 */
+	private async checkDefendantQuizProcess(quizId: string, dto: AttemptDTO) {
+		try {
+			const checking = await this.quizService.findById(quizId)
+			if (!checking) throw new NotFoundException('Тест не найден')
+			const existingAttempt = await this.prismaService.attemp.findFirst({
+				where: {
+					quizId: quizId,
+					fingerprint: dto.fingerprint,
+				},
+			})
+			if (existingAttempt) {
+				throw new BadRequestException('Вы уже прошли тестирование')
+			}
+			return true
+		} catch (error) {
+			// console.error('Ошибка при проверке попытки:', error.message)
 			throw error
 		}
 	}

@@ -31,6 +31,7 @@ export class QuizService {
 				trim: true,
 				replacement: '-',
 			})
+
 			await this.prismaService.quiz.create({
 				data: {
 					title: dto.title.trim(),
@@ -152,12 +153,12 @@ export class QuizService {
 	/**
 	 *
 	 * @param dto
-	 * @returns QUIZ PROCESS DATA
+	 * @returns QUIZ PROCESS
 	 */
-	async processQuiz(dto: QuizResultsDTO) {
+	async processedQuiz(dto: QuizResultsDTO) {
 		try {
 			const quiz = await this.findById(dto.quizId)
-			if (!quiz) throw new BadRequestException('Прохождение теста невозможно.')
+			if (!quiz) throw new NotFoundException('Прохождение теста невозможно.')
 
 			const answersArray = Object.entries(dto.answers).map(
 				([questionId, answerId]) => ({ questionId, answerId }),
@@ -178,7 +179,7 @@ export class QuizService {
 				})
 
 			const correctAnswerMap = new Map(
-				questionsWithCorrectAnswers.map((q) => [q.id, q.answers[0]?.id]),
+				questionsWithCorrectAnswers.map((q) => [q.id, q.answers[0].id]),
 			)
 
 			let correctCount = 0
@@ -268,25 +269,19 @@ export class QuizService {
 	 */
 	async findByUrlToProcessTesting(url: string) {
 		try {
+			const now = new Date()
+
 			const quiz = await this.prismaService.quiz.findUnique({
 				where: {
 					url,
 				},
 			})
-			const now = new Date()
 			if (quiz && quiz.expires <= now) {
 				throw new BadRequestException({
 					message: 'Тест не активен',
 					expire: true,
 				})
 			}
-			// const timeExpire = new Date().getMilliseconds()
-			// if (quiz && quiz.expires <= now && quiz.expireTime <= timeExpire) {
-			// 	throw new BadRequestException({
-			// 		message: 'Тест не активен',
-			// 		expire: true,
-			// 	})
-			// }
 			return await this.prismaService.quiz.findUnique({
 				where: {
 					url,
@@ -355,6 +350,11 @@ export class QuizService {
 		}
 	}
 
+	/**
+	 *
+	 * @param id
+	 * @description FIND ALL QUESTIONS BY QUIZ ID
+	 */
 	async findQuestionById(id: string) {
 		try {
 			return await this.prismaService.answer.findUnique({
@@ -367,6 +367,11 @@ export class QuizService {
 		}
 	}
 
+	/**
+	 *
+	 * @param id
+	 * @description FIND ALL QUESTIONS BY QUIZ ID
+	 */
 	async deleteQuiz(id: string) {
 		try {
 			const find = await this.findById(id)
@@ -385,6 +390,11 @@ export class QuizService {
 		}
 	}
 
+	/**
+	 *
+	 * @param id
+	 * @description FIND ALL QUESTIONS BY QUIZ ID
+	 */
 	async deleteQuestion(id: string) {
 		try {
 			const find = await this.prismaService.question.findUnique({
@@ -403,6 +413,11 @@ export class QuizService {
 		}
 	}
 
+	/**
+	 *
+	 * @param id
+	 * @description FIND ALL QUESTIONS BY QUIZ ID
+	 */
 	async deleteAnswer(id: string) {
 		try {
 			const find = await this.prismaService.answer.findUnique({ where: { id } })
