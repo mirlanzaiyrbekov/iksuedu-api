@@ -5,11 +5,8 @@ import { resources } from './resource'
 @Module({
 	imports: [
 		ConfigModule.forRoot({
-			envFilePath:
-				process.env.NODE_ENV === 'production'
-					? '.env.production'
-					: '.env.development',
 			isGlobal: true,
+			envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
 		}),
 		...resources,
 	],
