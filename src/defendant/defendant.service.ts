@@ -46,7 +46,7 @@ export class DefendantService {
 				data: {
 					fullName: dto.fullName,
 					school: dto.school,
-					phone: dto.email,
+					email: dto.email,
 					tests: { connect: { id: dto.testId } },
 				},
 			})
