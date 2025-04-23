@@ -31,7 +31,7 @@ export class DefendantCreateDTO {
 
 	@IsString()
 	@IsNotEmpty()
-	phone: string
+	email: string
 
 	@IsString()
 	@IsNotEmpty()
