@@ -15,13 +15,14 @@ export const RETURN_QUIZ_OBJECT_FIELDS: Prisma.QuizSelect = {
 			answers: true,
 			fullName: true,
 			phone: true,
+			email: true,
 			score: true,
 			passed: true,
-			school: true
+			school: true,
 		},
 		orderBy: {
-			score: "desc"
-		}
+			score: 'desc',
+		},
 	},
 	teacher: {
 		select: {

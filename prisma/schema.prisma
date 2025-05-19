@@ -34,7 +34,7 @@ model Defendant {
   // NEW
   fullName      String?             @map("full_name")
   // DEPRECATED
-  email         String?             @unique
+  email         String?            
   phone         String?
   school        String    
   tests         Quiz[]              @relation("TestDefendant")
